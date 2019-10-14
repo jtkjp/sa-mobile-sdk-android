@@ -1,20 +1,19 @@
 package tv.superawesome.lib.saevents;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 import android.webkit.WebView;
 import android.widget.VideoView;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
-import java.util.concurrent.Future;
 
 import tv.superawesome.lib.samodelspace.saad.SAAd;
 import tv.superawesome.lib.sautils.SAUtils;
 
 public class SAMoatModule {
 
-    private static String TAG = "SuperAwesome-Moat-Module";
     private static final String kMoatClass = "tv.superawesome.lib.samoatevents.SAMoatEvents";
 
     // boolean mostly used for tests, in order to not limit moat at all
@@ -27,9 +26,7 @@ public class SAMoatModule {
     // the ad object
     private SAAd      ad;
 
-    public SAMoatModule (SAAd ad, boolean doLog) {
-
-        MyLog.mDoLog = doLog;
+    public SAMoatModule (SAAd ad) {
 
         // save the ad
         this.ad = ad;
@@ -40,12 +37,10 @@ public class SAMoatModule {
             moatClass = Class.forName(kMoatClass);
             Constructor<?> moatConstructor = moatClass.getConstructor();
             moatInstance = moatConstructor.newInstance();
-            MyLog.d(TAG, "Created SA Moat class instance " + moatInstance);
+
         } catch (Exception e) {
             e.printStackTrace();
-            MyLog.e(TAG, "Could not create SA Moat class instance because " + e.getMessage());
-        } else {
-            MyLog.e(TAG, "Could not create SA Moat class instance because " + kMoatClass + " is not available");
+            Log.w("SuperAwesome", "Could not create Moat instance because " + e.getMessage());
         }
     }
 
@@ -54,12 +49,9 @@ public class SAMoatModule {
             Class<?> moatCls = Class.forName(kMoatClass);
             java.lang.reflect.Method method = moatCls.getMethod("initMoat", Application.class, boolean.class);
             method.invoke(moatCls, application, loggingEnabled);
-            MyLog.d(TAG, "Initialised Moat instance successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            MyLog.e(TAG, "Could not init Moat instance because " + e.getMessage());
-        } else {
-            MyLog.e(TAG,"Could not init Moat instance because " + kMoatClass + " is not available");
+            Log.w("SuperAwesome", "Could not init Moat instance because " + e.getMessage());
         }
     }
 
@@ -77,16 +69,7 @@ public class SAMoatModule {
         // here calc if moat should be displayed
         int moatIntRand = SAUtils.randomNumberBetween(0, 100);
         double moatRand = moatIntRand / 100.0;
-
-        boolean response = ad != null && ((moatRand < ad.moat && moatLimiting) || !moatLimiting);
-
-        try {
-            MyLog.i(TAG, "Is Moat allowed: moatRand="+moatRand + " | ad.moat="+ad.moat + " | moatLimiting="+moatLimiting + " | response="+response);
-        } catch (Exception e) {
-            MyLog.i(TAG, "Is Moat allowed: moatRand="+moatRand + " | ad.moat=null | moatLimiting="+moatLimiting + " | response="+response);
-        }
-
-        return response;
+        return ad != null && ((moatRand < ad.moat && moatLimiting) || !moatLimiting);
     }
 
     /**
@@ -99,10 +82,7 @@ public class SAMoatModule {
      */
     public String startMoatTrackingForDisplay(WebView view) {
 
-        boolean nullInstance = moatInstance != null;
-        boolean isAllowed = isMoatAllowed();
-
-        if (nullInstance && isAllowed) try {
+        if (moatInstance != null && isMoatAllowed()) try {
 
             HashMap<String, String> adData = new HashMap<>();
             adData.put("advertiserId", "" + ad.advertiserId);
@@ -115,14 +95,13 @@ public class SAMoatModule {
 
             java.lang.reflect.Method method = moatClass.getMethod("startMoatTrackingForDisplay", WebView.class, HashMap.class);
             Object returnValue = method.invoke(moatInstance, view, adData);
-            MyLog.d(TAG,"Called 'startMoatTrackingForDisplay' with response " + returnValue);
             return (String) returnValue;
+
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'startMoatTrackingForDisplay' because " + e.getMessage());
+            Log.w("SuperAwesome", "Start Moat Tracking For Display: " + e.getMessage());
             return "";
         } else {
-            MyLog.e(TAG, "Could not call 'startMoatTrackingForDisplay' because: Moat instance > " + nullInstance + " | isMoatAllowed > " + isAllowed);
+            Log.w("SuperAwesome", "Start Moat Tracking For Display: Moat instance is null or isMoatAllowed() returned false");
             return "";
         }
     }
@@ -138,24 +117,18 @@ public class SAMoatModule {
 
             java.lang.reflect.Method method = moatClass.getMethod("stopMoatTrackingForDisplay");
             Object returnValue = method.invoke(moatInstance);
-            MyLog.d(TAG, "Called 'stopMoatTrackingForDisplay' with response " + returnValue);
             return (Boolean) returnValue;
+
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'stopMoatTrackingForDisplay' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'stopMoatTrackingForDisplay' because Moat instance is null");
             return false;
         }
     }
 
     public boolean startMoatTrackingForVideoPlayer(VideoView videoView, int duration){
 
-        boolean nullInstance = moatInstance != null;
-        boolean isAllowed = isMoatAllowed();
-
-        if (nullInstance && isAllowed) try {
+        if (moatInstance != null && isMoatAllowed()) try {
 
             HashMap<String, String> adData = new HashMap<>();
             adData.put("advertiserId", "" + ad.advertiserId);
@@ -168,14 +141,14 @@ public class SAMoatModule {
 
             java.lang.reflect.Method method = moatClass.getMethod("startMoatTrackingForVideoPlayer", VideoView.class, HashMap.class, int.class);
             Object returnValue = method.invoke(moatInstance, videoView, adData, duration);
-            MyLog.d(TAG,"Called 'startMoatTrackingForVideoPlayer' with response " + returnValue);
             return (Boolean) returnValue;
+
         } catch (Exception e) {
             e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'startMoatTrackingForVideoPlayer' because " + e.getMessage());
+            Log.w("SuperAwesome", "Start Moat Tracking For Video: " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'startMoatTrackingForVideoPlayer' because: Moat instance > " + nullInstance + " | isMoatAllowed > " + isAllowed);
+            Log.w("SuperAwesome", "Start Moat Tracking For Video: Moat instance is null or isMoatAllowed() returned false");
             return false;
         }
     }
@@ -184,14 +157,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendPlayingEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendPlayingEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendPlayingEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendPlayingEvent' because Moat instance is null");
             return false;
         }
     }
@@ -200,14 +169,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendStartEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendStartEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendStartEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendStartEvent' because Moat instance is null");
             return false;
         }
     }
@@ -216,14 +181,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendFirstQuartileEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendFirstQuartileEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendFirstQuartileEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendFirstQuartileEvent' because Moat instance is null");
             return false;
         }
     }
@@ -232,14 +193,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendMidpointEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendMidpointEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendMidpointEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendMidpointEvent' because Moat instance is null");
             return false;
         }
     }
@@ -248,14 +205,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendThirdQuartileEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendThirdQuartileEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendThirdQuartileEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendThirdQuartileEvent' because Moat instance is null");
             return false;
         }
     }
@@ -264,14 +217,10 @@ public class SAMoatModule {
         if (moatInstance != null) try {
             java.lang.reflect.Method method = moatClass.getMethod("sendCompleteEvent", int.class);
             Object returnValue = method.invoke(moatInstance, position);
-            MyLog.d(TAG,"Called 'sendCompleteEvent' with response " + returnValue);
             return (Boolean) returnValue;
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'sendCompleteEvent' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'sendCompleteEvent' because Moat instance is null");
             return false;
         }
     }
@@ -287,49 +236,16 @@ public class SAMoatModule {
 
             java.lang.reflect.Method method = moatClass.getMethod("stopMoatTrackingForVideoPlayer");
             Object returnValue = method.invoke(moatInstance);
-            MyLog.d(TAG,"Called 'stopMoatTrackingForVideoPlayer' with response " + returnValue);
             return (Boolean) returnValue;
 
         } catch (Exception e) {
-            e.printStackTrace();
-            MyLog.e(TAG, "Could not call 'stopMoatTrackingForVideoPlayer' because " + e.getMessage());
             return false;
         } else {
-            MyLog.e(TAG, "Could not call 'stopMoatTrackingForVideoPlayer' because Moat instance is null");
             return false;
         }
     }
 
     public void disableMoatLimiting () {
         moatLimiting = false;
-    }
-
-    private static class MyLog {
-
-        static boolean mDoLog = true;
-
-        static void d (String tag, String message) {
-            if (mDoLog) {
-                Log.d(tag, message);
-            }
-        }
-
-        static void w (String tag, String message) {
-            if (mDoLog) {
-                Log.w(tag, message);
-            }
-        }
-
-        static void i (String tag, String message) {
-            if (mDoLog) {
-                Log.i(tag, message);
-            }
-        }
-
-        static void e (String tag, String message) {
-            if (mDoLog) {
-                Log.e(tag, message);
-            }
-        }
     }
 }

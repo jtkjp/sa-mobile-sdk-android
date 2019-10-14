@@ -37,10 +37,6 @@ import tv.superawesome.lib.sawebplayer.SAWebPlayer;
 
 public class SABannerAd extends FrameLayout {
 
-    interface VisibilityListener {
-        void hasBeenVisible();
-    }
-
     // constants
     private final int       BANNER_BACKGROUND = Color.rgb(224, 224, 224);
 
@@ -66,8 +62,6 @@ public class SABannerAd extends FrameLayout {
     private boolean         moatLimiting;
 
     private Long            currentClickThreshold = 0L;
-
-    private VisibilityListener visibilityListener = null;
 
 
     /**
@@ -207,8 +201,8 @@ public class SABannerAd extends FrameLayout {
 
             // create a new web player fragment object
             webPlayer = new SAWebPlayer(context);
-            webPlayer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             webPlayer.setContentSize(ad.creative.details.width, ad.creative.details.height);
+            webPlayer.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             // and set it's event listener
             webPlayer.setEventListener(new SAWebPlayer.Listener() {
                 @Override
@@ -242,9 +236,6 @@ public class SABannerAd extends FrameLayout {
                                 public void saDidFindViewOnScreen(boolean success) {
                                     if (success) {
                                         events.triggerViewableImpressionEvent();
-                                        if (visibilityListener != null) {
-                                            visibilityListener.hasBeenVisible();
-                                        }
                                     }
                                 }
                             });
@@ -254,7 +245,6 @@ public class SABannerAd extends FrameLayout {
                             } else {
                                 Log.w("AwesomeAds", "Banner Ad listener not implemented. Event would have been adShown");
                             }
-
                             break;
                         }
                         // this is actually a fragment event notifying the banner class that
@@ -277,18 +267,35 @@ public class SABannerAd extends FrameLayout {
                                 padlock.setVisibility(ad.isPadlockVisible ? VISIBLE : GONE);
                             } catch (Exception e) {
                                 padlock.setVisibility(GONE);
-                            }
+                            };
 
                             padlock.setOnClickListener(new OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                Runnable runner = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        showSuperAwesomeWebViewInExternalBrowser(context);
-                                    }
-                                };
-                                showParentalGateIfNeededWithCompletion(context, runner);
+
+                                    SAParentalGate.setListener(new SAParentalGate.Interface() {
+                                        @Override
+                                        public void parentalGateOpen() {}
+
+                                        @Override
+                                        public void parentalGateSuccess() {
+                                            SABumperPage.setListener(new SABumperPage.Interface() {
+                                                @Override
+                                                public void didEndBumper() {
+                                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ads.superawesome.tv/v2/safead"));
+                                                    context.startActivity(browserIntent);
+                                                }
+                                            });
+                                            SABumperPage.play((Activity)getContext());
+                                        }
+
+                                        @Override
+                                        public void parentalGateFailure() {}
+
+                                        @Override
+                                        public void parentalGateCancel() {}
+                                    });
+                                    SAParentalGate.show(context);
                                 }
                             });
                             webPlayer.getHolder().addView(padlock);
@@ -299,7 +306,6 @@ public class SABannerAd extends FrameLayout {
                         }
                         // this is called when the fragment & web view have all been laid out
                         case Web_Layout:{
-
                             if (webPlayer.getWebView() != null && padlock != null) {
                                 padlock.setTranslationX(webPlayer.getWebView().getTranslationX());
                                 padlock.setTranslationY(webPlayer.getWebView().getTranslationY());
@@ -330,13 +336,35 @@ public class SABannerAd extends FrameLayout {
 
                             if (destination != null) {
 
-                                Runnable runner = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        click(destination);
-                                    }
-                                };
-                                showParentalGateIfNeededWithCompletion(context, runner);
+                                // check for PG
+                                if (isParentalGateEnabled) {
+                                    SAParentalGate.setListener(new SAParentalGate.Interface() {
+                                        @Override
+                                        public void parentalGateOpen() {
+                                            events.triggerPgOpenEvent();
+                                        }
+
+                                        @Override
+                                        public void parentalGateSuccess() {
+                                            events.triggerPgSuccessEvent();
+                                            click(destination);
+                                        }
+
+                                        @Override
+                                        public void parentalGateFailure() {
+                                            events.triggerPgFailEvent();
+                                        }
+
+                                        @Override
+                                        public void parentalGateCancel() {
+                                            events.triggerPgCloseEvent();
+                                        }
+                                    });
+                                    SAParentalGate.show(context);
+                                } else {
+                                    click(destination);
+                                }
+
                             }
 
                             break;
@@ -358,6 +386,10 @@ public class SABannerAd extends FrameLayout {
         }
     }
 
+    private void paclockClick(View v) {
+
+    }
+
     /**
      * One of the main public methods of the SABannerAd class that gets called when the web view
      * surface detects a click of some sort.
@@ -366,7 +398,7 @@ public class SABannerAd extends FrameLayout {
      */
     public void click (final String destination) {
 
-        if ((ad != null && ad.creative != null && ad.creative.bumper) || isBumperPageEnabled) {
+        if (isBumperPageEnabled || ad.creative.bumper) {
             SABumperPage.setListener(new SABumperPage.Interface() {
                 @Override
                 public void didEndBumper() {
@@ -380,11 +412,6 @@ public class SABannerAd extends FrameLayout {
     }
 
     private void handleUrl (String destination) {
-
-        // if someone's closed this thing
-        if (ad == null || ad.creative == null) {
-            return;
-        }
 
         Log.d("AwesomeAds-2", "Got here!");
 
@@ -408,11 +435,7 @@ public class SABannerAd extends FrameLayout {
         }
 
         // send tracking events, if needed
-        if (ad != null &&
-                ad.creative != null &&
-                ad.creative.format != SACreativeFormat.rich &&
-                session != null &&
-                !destination.contains(session.getBaseUrl())) {
+        if (session != null && !destination.contains(session.getBaseUrl())) {
             events.triggerClickEvent();
         }
 
@@ -431,12 +454,7 @@ public class SABannerAd extends FrameLayout {
      * Method that gets called in order to close the banner ad, remove any fragments, etc
      */
     public void close () {
-        // de-set visibility listener
-        if (visibilityListener != null) {
-            visibilityListener = null;
-        }
-
-        // de-set public listener
+        // set listener
         if (listener != null) {
             listener.onEvent(ad != null ? ad.placementId : 0, SAEvent.adClosed);
         } else {
@@ -470,7 +488,7 @@ public class SABannerAd extends FrameLayout {
      */
     public void setAd(SAAd ad) {
         this.ad = ad;
-        events.setAd(session, this.ad);
+        events.setAd(getContext(), session, this.ad);
     }
 
     /**
@@ -486,49 +504,6 @@ public class SABannerAd extends FrameLayout {
         return ad;
     }
 
-    private void showParentalGateIfNeededWithCompletion(final Context context,
-                                                        final Runnable completion) {
-
-        if (isParentalGateEnabled) {
-            SAParentalGate.setListener(new SAParentalGate.Interface() {
-                @Override
-                public void parentalGateOpen() {
-                    events.triggerPgOpenEvent();
-                }
-
-                @Override
-                public void parentalGateSuccess() {
-                    events.triggerPgSuccessEvent();
-                    completion.run();
-                }
-
-                @Override
-                public void parentalGateFailure() {
-                    events.triggerPgFailEvent();
-                }
-
-                @Override
-                public void parentalGateCancel() {
-                    events.triggerPgCloseEvent();
-                }
-            });
-
-            SAParentalGate.show(context);
-        } else {
-            completion.run();
-        }
-    }
-
-    private void showSuperAwesomeWebViewInExternalBrowser(final Context context) {
-        SABumperPage.setListener(new SABumperPage.Interface() {
-            @Override
-            public void didEndBumper() {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ads.superawesome.tv/v2/safead"));
-                context.startActivity(browserIntent);
-            }
-        });
-        SABumperPage.play((Activity)getContext());
-    }
 
     /**********************************************************************************************
      * Setters & Getters
@@ -598,10 +573,6 @@ public class SABannerAd extends FrameLayout {
         session.setConfiguration(value);
     }
 
-    public void setVisibilityListener(VisibilityListener listener) {
-        visibilityListener = listener;
-    }
-
     public void setColor (boolean value) {
         if (value) {
             setBackgroundColor(Color.TRANSPARENT);
@@ -609,10 +580,6 @@ public class SABannerAd extends FrameLayout {
             setBackgroundColor(BANNER_BACKGROUND);
         }
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // SABannerAd.VisibilityListener
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void disableMoatLimiting () {
         moatLimiting = false;

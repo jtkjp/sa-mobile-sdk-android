@@ -18,9 +18,7 @@ import com.moat.analytics.mobile.sup.WebAdTracker;
 
 import java.util.HashMap;
 
-public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
-
-    private static String TAG = "SuperAwesome-Moat";
+public class SAMoatEvents {
 
     // Moat tracking hardcoded constants
     private static final String MOAT_SERVER                 = "https://z.moatads.com";
@@ -51,12 +49,24 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
         }
 
         webTracker = factory.createWebAdTracker(webView);
-        webTracker.setListener(this);
+        webTracker.setListener(new TrackerListener() {
+            @Override
+            public void onTrackingStarted(String s) {
+                Log.d("SuperAwesome", "Started tracking web view ad " + s);
+            }
 
-        if (webTracker == null) {
-            Log.e(TAG, "Could not start tracking web view since webTracker is null");
-            return "";
-        }
+            @Override
+            public void onTrackingFailedToStart(String s) {
+                Log.e("SuperAwesome", "Faield to start tracking web view ad " + s);
+            }
+
+            @Override
+            public void onTrackingStopped(String s) {
+                Log.d("SuperAwesome", "Stopped tracking web view ad " + s);
+            }
+        });
+
+        if (webTracker == null) return "";
 
         // form the proper moat data
         String moatQuery = "";
@@ -70,8 +80,6 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
 
         webTracker.startTracking();
 
-        Log.d(TAG, "Trying to start tracking web with query " + moatQuery);
-
         // and return the special moat javascript tag to be loaded in a web view
         return "<script src=\""+MOAT_SERVER+"/"+MOAT_DISPLAY_PARTNER_CODE+"/"+MOAT_URL+"?"+moatQuery+"\" type=\"text/javascript\"></script>";
     }
@@ -82,7 +90,6 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
             webTracker = null;
             return true;
         } else {
-            Log.e(TAG, "Could not stop tracking display since webTracker is null");
             return false;
         }
     }
@@ -94,13 +101,32 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
         }
 
         videoTracker = factory.createCustomTracker(new ReactiveVideoTrackerPlugin(MOAT_VIDEO_PARTNER_CODE));
-        videoTracker.setListener(this);
-        videoTracker.setVideoListener(this);
+        videoTracker.setListener(new TrackerListener() {
+            @Override
+            public void onTrackingStarted(String s) {
+                Log.d("SuperAwesome", "Started to track video ad " + s);
+            }
 
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not start tracking video with duration " + duration + " since videoTracker is null");
-            return false;
-        }
+            @Override
+            public void onTrackingFailedToStart(String s) {
+                Log.e("SuperAwesome", "Failed to start tracking video ad " + s);
+            }
+
+            @Override
+            public void onTrackingStopped(String s) {
+                Log.d("SuperAwesome", "Stopped tracking video ad " + s);
+            }
+        });
+        videoTracker.setVideoListener(new VideoTrackerListener() {
+            @Override
+            public void onVideoEventReported(MoatAdEventType moatAdEventType) {
+                Log.d("SuperAwesome", "Got MOAT event " + moatAdEventType);
+            }
+        });
+
+        Log.d("SuperAwesome", "Starting Moat video for duration " + duration);
+
+        if (videoTracker == null) return false;
 
         HashMap<String, String> adIds = new HashMap<>();
         adIds.put("level1", "" + adDetails.get("advertiserId"));
@@ -111,61 +137,41 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
         adIds.put("slicer2", "" + adDetails.get("placementId"));
         adIds.put("slicer3", "" + adDetails.get("publisherId"));
 
-        Log.d(TAG, "Trying to start tracking video for duration " + duration + " and level/slicer info " + adIds.toString());
-
         return videoTracker.trackVideoAd(adIds, duration, videoView);
     }
 
     public boolean sendPlayingEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendPlayingEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_PLAYING, position));
         return true;
     }
 
     public boolean sendStartEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendStartEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_START, position));
         return true;
     }
 
     public boolean sendFirstQuartileEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendFirstQuartileEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_FIRST_QUARTILE, position));
         return true;
     }
 
     public boolean sendMidpointEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendMidpointEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_MID_POINT, position));
         return true;
     }
 
     public boolean sendThirdQuartileEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendThirdQuartileEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_THIRD_QUARTILE, position));
         return true;
     }
 
     public boolean sendCompleteEvent (int position) {
-        if (videoTracker == null) {
-            Log.e(TAG, "Could not send sendCompleteEvent to Moat since videoTracker is null");
-            return false;
-        }
+        if (videoTracker == null) return false;
         videoTracker.dispatchEvent(new MoatAdEvent(MoatAdEventType.AD_EVT_COMPLETE, position));
         return true;
     }
@@ -175,28 +181,7 @@ public class SAMoatEvents implements TrackerListener, VideoTrackerListener {
             videoTracker.stopTracking();
             return true;
         } else {
-            Log.e(TAG, "Could not stop tracking video since videoTracker is null");
             return false;
         }
-    }
-
-    @Override
-    public void onTrackingStarted(String s) {
-        Log.d(TAG, "Started tracking: " + s);
-    }
-
-    @Override
-    public void onTrackingFailedToStart(String s) {
-        Log.e(TAG, "Failed to start tracking: " + s);
-    }
-
-    @Override
-    public void onTrackingStopped(String s) {
-        Log.d(TAG, "Stopped tracking: " + s);
-    }
-
-    @Override
-    public void onVideoEventReported(MoatAdEventType moatAdEventType) {
-        Log.d(TAG, "Video event " + moatAdEventType);
     }
 }

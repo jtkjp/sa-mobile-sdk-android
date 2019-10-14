@@ -1,5 +1,7 @@
 package tv.superawesome.lib.saevents.events;
 
+import android.content.Context;
+
 import org.json.JSONObject;
 
 import java.util.concurrent.Executor;
@@ -11,12 +13,12 @@ import tv.superawesome.lib.sasession.session.ISASession;
 
 public class SAClickEvent extends SAServerEvent {
 
-    public SAClickEvent(SAAd ad, ISASession session) {
-        super(ad, session);
+    public SAClickEvent(Context context, SAAd ad, ISASession session) {
+        super(context, ad, session);
     }
 
-    public SAClickEvent(SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
-        super(ad, session, executor, timeout, isDebug);
+    public SAClickEvent(Context context, SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
+        super(context, ad, session, executor, timeout, isDebug);
     }
 
     @Override

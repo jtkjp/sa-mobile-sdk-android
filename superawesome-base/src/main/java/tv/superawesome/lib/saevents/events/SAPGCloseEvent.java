@@ -13,12 +13,12 @@ import tv.superawesome.lib.sautils.SAUtils;
 
 public class SAPGCloseEvent extends SAServerEvent {
 
-    public SAPGCloseEvent(SAAd ad, ISASession session) {
-        super(ad, session);
+    public SAPGCloseEvent(Context context, SAAd ad, ISASession session) {
+        super(context, ad, session);
     }
 
-    public SAPGCloseEvent(SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
-        super(ad, session, executor, timeout, isDebug);
+    public SAPGCloseEvent(Context context, SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
+        super(context, ad, session, executor, timeout, isDebug);
     }
 
     @Override

@@ -95,7 +95,7 @@ repositories {
 }
 
 dependencies {
-    compile "tv.superawesome.lib.savideoplayer:savideoplayer:2.0.0-beta6"
+//    compile "tv.superawesome.lib.savideoplayer:savideoplayer:2.0.0-beta6"
     compile files('libs/moatlib.jar')
     compile files('libs/json.jar')
 

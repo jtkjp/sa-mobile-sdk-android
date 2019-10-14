@@ -18,7 +18,7 @@ import tv.superawesome.sdk.publisher.SAVideoAd;
  */
 public class SAUnityVideoAd {
 
-    private static final String unityName = "SAVideoActivity";
+    private static final String unityName = "SAVideoAd";
 
     /**
      * Method that creates a new Video Ad (from Unity)

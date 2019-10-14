@@ -26,18 +26,18 @@ public class SAServerModule {
     private SAPGFailEvent               sapgFailEvent = null;
     private SAPGSuccessEvent            sapgSuccessEvent = null;
 
-    public SAServerModule (SAAd ad, ISASession session) {
-        this(ad, session, Executors.newSingleThreadExecutor(), 15000, false);
+    public SAServerModule (Context context, SAAd ad, ISASession session) {
+        this(context, ad, session, Executors.newSingleThreadExecutor(), 15000, false);
     }
 
-    public SAServerModule (SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
-        clickEvent = new SAClickEvent(ad, session, executor, timeout, isDebug);
-        impressionEvent = new SAImpressionEvent(ad, session, executor, timeout, isDebug);
-        viewableImpressionEvent = new SAViewableImpressionEvent(ad, session, executor, timeout, isDebug);
-        sapgOpenEvent = new SAPGOpenEvent(ad, session, executor, timeout, isDebug);
-        sapgCloseEvent = new SAPGCloseEvent(ad, session, executor, timeout, isDebug);
-        sapgFailEvent = new SAPGFailEvent(ad, session, executor, timeout, isDebug);
-        sapgSuccessEvent = new SAPGSuccessEvent(ad, session, executor, timeout, isDebug);
+    public SAServerModule (Context context, SAAd ad, ISASession session, Executor executor, int timeout, boolean isDebug) {
+        clickEvent = new SAClickEvent(context, ad, session, executor, timeout, isDebug);
+        impressionEvent = new SAImpressionEvent(context, ad, session, executor, timeout, isDebug);
+        viewableImpressionEvent = new SAViewableImpressionEvent(context, ad, session, executor, timeout, isDebug);
+        sapgOpenEvent = new SAPGOpenEvent(context, ad, session, executor, timeout, isDebug);
+        sapgCloseEvent = new SAPGCloseEvent(context, ad, session, executor, timeout, isDebug);
+        sapgFailEvent = new SAPGFailEvent(context, ad, session, executor, timeout, isDebug);
+        sapgSuccessEvent = new SAPGSuccessEvent(context, ad, session, executor, timeout, isDebug);
     }
 
     public void triggerClickEvent (SAURLEvent.Listener listener) {
