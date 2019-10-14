@@ -15,7 +15,6 @@ import tv.superawesome.lib.sasession.defines.SARTBStartDelay;
 import tv.superawesome.sdk.publisher.SAEvent;
 import tv.superawesome.sdk.publisher.SAInterface;
 import tv.superawesome.sdk.publisher.SAOrientation;
-import tv.superawesome.sdk.publisher.SAVideoActivity;
 import tv.superawesome.sdk.publisher.SAVideoAd;
 
 public class SAAdMobVideoMediationAdapter implements MediationRewardedVideoAdAdapter{
