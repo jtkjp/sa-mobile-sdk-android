@@ -2,7 +2,6 @@
     package="tv.superawesome.sdk.publisher.base">
 
     <application
-        android:label="@string/app_name"
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity

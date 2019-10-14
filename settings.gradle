@@ -1,2 +1,2 @@
-include ':app', ':saunity', ':samopub', ':saair', ':superawesome', ':superawesome-base', ':saadmob'
+include ':app', ':saunity', ':samopub', ':saair', ':superawesome', ':superawesome-base'
 project(':superawesome-base').projectDir = new File('superawesome-base')
