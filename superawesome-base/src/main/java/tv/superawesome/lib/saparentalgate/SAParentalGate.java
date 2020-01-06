@@ -8,25 +8,13 @@ import android.widget.EditText;
 
 import java.util.Random;
 
+import tv.superawesome.sdk.publisher.base.R;
+
 /**
  * Class that defines a parental gate - basically a pop-up that, when enables, forces users to
  * respond to a mini-math quiz in order to proceed forward
  */
 public class SAParentalGate {
-
-    // constants for the rand nr. generator
-    private static final int RAND_MIN = 50;
-    private static final int RAND_MAX = 99;
-
-    // constants for text based stuff
-    private static final String SA_CHALLANGE_ALERTVIEW_TITLE = "Parental Gate";
-    private static final String SA_CHALLANGE_ALERTVIEW_MESSAGE = "Please solve the following problem to continue: ";
-    private static final String SA_CHALLANGE_ALERTVIEW_CANCELBUTTON_TITLE = "Cancel";
-    private static final String SA_CHALLANGE_ALERTVIEW_CONTINUEBUTTON_TITLE = "Continue";
-
-    private static final String SA_ERROR_ALERTVIEW_TITLE = "Oops! That was the wrong answer.";
-    private static final String SA_ERROR_ALERTVIEW_MESSAGE = "Please seek guidance from a responsible adult to help you continue.";
-    private static final String SA_ERROR_ALERTVIEW_CANCELBUTTON_TITLE = "Ok";
 
     // the alert dialog
     private static AlertDialog dialog = null;
@@ -46,15 +34,15 @@ public class SAParentalGate {
 
         listener.parentalGateOpen();
 
-        final int startNum = randomNumberBetween(RAND_MIN, RAND_MAX);
-        final int endNum = randomNumberBetween(RAND_MIN, RAND_MAX);
+        final int startNum = randomNumberBetween(c.getResources().getInteger(R.integer.videoads_rand_min), c.getResources().getInteger(R.integer.videoads_rand_max));
+        final int endNum = randomNumberBetween(c.getResources().getInteger(R.integer.videoads_rand_min), c.getResources().getInteger(R.integer.videoads_rand_max));
 
         // we have an alert dialog builder
         final AlertDialog.Builder alert = new AlertDialog.Builder(c);
         // set title and message
-        alert.setTitle(SA_CHALLANGE_ALERTVIEW_TITLE);
+        alert.setTitle(R.string.videoads_challange_alertview_title);
         alert.setCancelable(false);
-        alert.setMessage(SA_CHALLANGE_ALERTVIEW_MESSAGE + startNum + " + " + endNum + " = ? ");
+        alert.setMessage(c.getResources().getString(R.string.videoads_challange_alertview_message) + startNum + " + " + endNum + " = ? ");
 
         // Set an EditText view to get user input
         final EditText input = new EditText(c);
@@ -62,7 +50,7 @@ public class SAParentalGate {
         alert.setView(input);
 
         // create positive dialog
-        alert.setPositiveButton(SA_CHALLANGE_ALERTVIEW_CONTINUEBUTTON_TITLE, new DialogInterface.OnClickListener() {
+        alert.setPositiveButton(R.string.videoads_challange_alertview_continuebutton_title, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
                 int userValue = -1;
@@ -79,11 +67,11 @@ public class SAParentalGate {
 
                         // go on error way
                         AlertDialog.Builder erroralert = new android.app.AlertDialog.Builder(c);
-                        erroralert.setTitle(SA_ERROR_ALERTVIEW_TITLE);
-                        erroralert.setMessage(SA_ERROR_ALERTVIEW_MESSAGE);
+                        erroralert.setTitle(R.string.videoads_error_alertview_title);
+                        erroralert.setMessage(R.string.videoads_error_alertview_message);
 
                         // set button action
-                        erroralert.setPositiveButton(SA_ERROR_ALERTVIEW_CANCELBUTTON_TITLE, new DialogInterface.OnClickListener() {
+                        erroralert.setPositiveButton(R.string.videoads_error_alertview_cancelbutton_title, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
 
                                 listener.parentalGateFailure();
@@ -110,7 +98,7 @@ public class SAParentalGate {
         });
 
         // create negative dialog
-        alert.setNegativeButton(SA_CHALLANGE_ALERTVIEW_CANCELBUTTON_TITLE, new DialogInterface.OnClickListener() {
+        alert.setNegativeButton(R.string.videoads_challange_alertview_cancelbutton_title, new DialogInterface.OnClickListener() {
 
             public void onClick(DialogInterface dialog, int which) {
 
