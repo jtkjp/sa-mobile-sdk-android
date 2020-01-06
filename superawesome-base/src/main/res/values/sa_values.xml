@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="VideoAdsParentalGateDialogStyle" parent="android:Theme.Light">
+    <style name="VideoAdsParentalGateDialogStyle" parent="android:Theme.DeviceDefault.Dialog.Alert">
+        <item name="android:colorAccent">@android:color/holo_green_dark</item>
         <item name="android:background">@android:color/white</item>
         <item name="android:textColorPrimary">@android:color/black</item>
     </style>
 
-    <string name="videoads_challange_edittext_hint"></string>
-    <string name="videoads_challange_alertview_title" translatable="false">Parental Gate</string>
-    <string name="videoads_challange_alertview_message" translatable="false">\nPlease solve the following problem to continue: </string>
-    <string name="videoads_challange_alertview_cancelbutton_title" translatable="false">Cancel</string>
-    <string name="videoads_challange_alertview_continuebutton_title" translatable="false">Continue</string>
-    <string name="videoads_error_alertview_title" translatable="false">Oops! That was the wrong answer.</string>
-    <string name="videoads_error_alertview_message" translatable="false">Please seek guidance from a responsible adult to help you continue.</string>
+    <string name="videoads_challange_edittext_hint">タップして答えを入力</string>
+    <string name="videoads_challange_alertview_title" translatable="false">おうちの　ひとに　きいてね</string>
+    <string name="videoads_challange_alertview_message" translatable="false">\nお知らせは別のアプリで表示されます。\nお知らせを見るには次の問題を解いてください。</string>
+    <string name="videoads_challange_alertview_cancelbutton_title" translatable="false">キャンセル</string>
+    <string name="videoads_challange_alertview_continuebutton_title" translatable="false">OK</string>
+    <string name="videoads_error_alertview_title" translatable="false">答えが間違っています。\nもう一度タップしてください。</string>
+    <string name="videoads_error_alertview_message" translatable="false">おしらせを　みるには　おうちのひとに　きいてね。</string>
     <string name="videoads_error_alertview_cancelbutton_title" translatable="false">OK</string>
 
-    <integer name="videoads_rand_min">50</integer>
-    <integer name="videoads_rand_max">99</integer>
+    <integer name="videoads_rand_min">3</integer>
+    <integer name="videoads_rand_max">9</integer>
+    <integer name="videoads_answer_min">20</integer>
 
 </resources>
